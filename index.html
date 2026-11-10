@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2f8f83" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#14201f" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="Registra tus actividades diarias con tu huella digital.">
+  <title>Checador</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Checador">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <img src="icons/icon.svg" alt="" width="28" height="28">
+        <span>Checador</span>
+      </div>
+      <div class="topbar-actions">
+        <span id="offlineBadge" class="badge" hidden>Sin conexión</span>
+        <button id="btnToday" class="btn ghost" type="button">Hoy</button>
+        <button id="btnSettings" class="icon-btn" type="button" aria-label="Ajustes">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <!-- Calendario -->
+      <section class="panel calendar" aria-label="Calendario">
+        <div class="month-nav">
+          <button id="prevMonth" class="icon-btn" type="button" aria-label="Mes anterior">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <h2 id="monthTitle"></h2>
+          <button id="nextMonth" class="icon-btn" type="button" aria-label="Mes siguiente">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+        <div class="weekdays" aria-hidden="true">
+          <span>Dom</span><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span>
+        </div>
+        <div id="grid" class="grid" role="grid"></div>
+        <div class="legend">
+          <span><i class="dot done"></i>Todo hecho</span>
+          <span><i class="dot pending"></i>Pendiente</span>
+          <span><i class="dot missed"></i>No hecho</span>
+        </div>
+      </section>
+
+      <!-- Vista del día -->
+      <section class="panel day" aria-label="Tareas del día">
+        <div class="day-head">
+          <button id="btnBack" class="icon-btn back" type="button" aria-label="Volver al calendario">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <div>
+            <p id="dayWeekday" class="eyebrow"></p>
+            <h2 id="dayTitle"></h2>
+          </div>
+        </div>
+        <div class="progress" aria-hidden="true"><div id="progressBar"></div></div>
+        <p id="daySummary" class="muted"></p>
+        <ul id="taskList" class="task-list"></ul>
+        <div id="emptyState" class="empty" hidden>
+          <p>No hay tareas para este día.</p>
+          <p class="muted">Toca <strong>+</strong> para agregar una.</p>
+        </div>
+        <button id="btnAdd" class="fab" type="button" aria-label="Agregar tarea">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+      </section>
+    </main>
+  </div>
+
+  <!-- Crear / editar tarea -->
+  <dialog id="taskDialog">
+    <form id="taskForm" method="dialog">
+      <h3 id="taskDialogTitle">Nueva tarea</h3>
+      <label class="field">
+        <span>¿Qué tienes que hacer?</span>
+        <input id="fName" name="name" required maxlength="80" placeholder="Ej. Tomar medicamento" autocomplete="off">
+      </label>
+      <div class="row">
+        <label class="field">
+          <span>Hora</span>
+          <input id="fTime" name="time" type="time" required>
+        </label>
+        <label class="field">
+          <span>Desde</span>
+          <input id="fStart" name="start" type="date" required>
+        </label>
+      </div>
+
+      <fieldset class="field">
+        <legend>¿Cuándo se repite?</legend>
+        <div class="segmented">
+          <label><input type="radio" name="repeat" value="once" checked><span>Solo ese día</span></label>
+          <label><input type="radio" name="repeat" value="weekly"><span>Algunos días</span></label>
+        </div>
+      </fieldset>
+
+      <div id="repeatBox" hidden>
+        <div class="chips" id="fDays">
+          <label><input type="checkbox" value="1"><span>L</span></label>
+          <label><input type="checkbox" value="2"><span>M</span></label>
+          <label><input type="checkbox" value="3"><span>M</span></label>
+          <label><input type="checkbox" value="4"><span>J</span></label>
+          <label><input type="checkbox" value="5"><span>V</span></label>
+          <label><input type="checkbox" value="6"><span>S</span></label>
+          <label><input type="checkbox" value="0"><span>D</span></label>
+        </div>
+        <div class="quick">
+          <button type="button" class="btn ghost small" data-days="0,1,2,3,4,5,6">Todos los días</button>
+          <button type="button" class="btn ghost small" data-days="1,2,3,4,5">Lun a Vie</button>
+          <button type="button" class="btn ghost small" data-days="0,6">Fines de semana</button>
+        </div>
+        <label class="field">
+          <span>Hasta (opcional)</span>
+          <input id="fEnd" name="end" type="date">
+        </label>
+      </div>
+
+      <p id="formError" class="error" hidden></p>
+
+      <div class="dialog-actions">
+        <button id="btnDelete" type="button" class="btn danger ghost" hidden>Eliminar</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn ghost" data-close>Cancelar</button>
+        <button type="submit" class="btn primary">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Ajustes -->
+  <dialog id="settingsDialog">
+    <div class="dialog-body">
+      <h3>Ajustes</h3>
+
+      <section class="setting">
+        <h4>Huella digital</h4>
+        <p id="huellaStatus" class="muted"></p>
+        <button id="btnSetupHuella" type="button" class="btn primary">Configurar huella</button>
+      </section>
+
+      <section class="setting">
+        <h4>Respaldo</h4>
+        <p class="muted">Tus datos viven solo en este dispositivo. Descarga un respaldo de vez en cuando.</p>
+        <div class="row-buttons">
+          <button id="btnExport" type="button" class="btn ghost">Descargar respaldo</button>
+          <label class="btn ghost">
+            Restaurar respaldo
+            <input id="fileImport" type="file" accept="application/json,.json" hidden>
+          </label>
+        </div>
+      </section>
+
+      <div class="dialog-actions">
+        <span class="spacer"></span>
+        <button type="button" class="btn primary" data-close>Listo</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
